@@ -6,13 +6,14 @@ const {
   GraphQLSchema,
   GraphQLObjectType,
   GraphQLID,
+  GraphQLList,
   GraphQLString,
   GraphQLNonNull,
   GraphQLInt,
   GraphQLBoolean,
  } = require('graphql');
 
-const {getVideoById} = require('./src/data');
+const {getVideoById, getVideos} = require('./src/data');
 
 const PORT = process.env.PORT || 3000;
 
@@ -45,12 +46,16 @@ const queryType = new GraphQLObjectType({
   name: 'QueryType',
   description: 'The Rot query type',
   fields: {
+    videos: {
+      type: new GraphQLList(videoType),
+      resolve: getVideos,
+    },
     video: {
       type: videoType,
       args: {
         id:{
           type: new GraphQLNonNull(GraphQLID),
-          description: 'the id of the video'
+          description: 'the id of the video',
         },
       },
       resolve: (_, args) => {
