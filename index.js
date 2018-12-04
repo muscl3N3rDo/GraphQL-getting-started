@@ -8,12 +8,14 @@ const {
   GraphQLID,
   GraphQLList,
   GraphQLString,
+  GraphQLInputObjectType,
   GraphQLNonNull,
   GraphQLInt,
   GraphQLBoolean,
  } = require('graphql');
 
 const {getVideoById, getVideos, createVideo} = require('./src/data');
+const {nodeInterface} = require('./src/node');
 
 const PORT = process.env.PORT || 3000;
 
@@ -23,8 +25,8 @@ const videoType = new GraphQLObjectType({
   name: 'Video',
   description: 'A video',
   fields: {
-    id: {
-        type: GraphQLID,
+      id: {
+        type: new GraphQLNonNull(GraphQLID),
         description: 'The id of the video.'
       },
       title: {
@@ -40,7 +42,10 @@ const videoType = new GraphQLObjectType({
         description: 'Whether or not the viewer has watched the video.'
       },
   },
+  interfaces: [nodeInterface],
 });
+
+exports.videoType = videoType;
 
 const queryType = new GraphQLObjectType({
   name: 'QueryType',
@@ -65,6 +70,24 @@ const queryType = new GraphQLObjectType({
   }
 });
 
+const videoInputType = new GraphQLInputObjectType({
+  name: 'VideoInput',
+  fields: {
+    title: {
+      type: new GraphQLNonNull(GraphQLString),
+      description: 'The title of the video.',
+    },
+    duration: {
+      type: new GraphQLNonNull(GraphQLInt),
+      description: 'The duration of the video (in seconds).',
+    },
+    released: {
+      type: new GraphQLNonNull(GraphQLBoolean),
+      description: 'Whether or not the video is released',
+    }
+  }
+});
+
 const mutationType = new GraphQLObjectType({
   name: 'Mutation',
   description: 'Te root Mutation type.',
@@ -72,21 +95,12 @@ const mutationType = new GraphQLObjectType({
     createVideo: {
       type: videoType,
       args: {
-        title: {
-          type: new GraphQLNonNull(GraphQLString),
-          description: 'The title of the video',
-        },
-        duration: {
-          type: new GraphQLNonNull(GraphQLInt),
-          description: 'The duration of the video (in seconds).',
-        },
-        released: {
-          type: new GraphQLNonNull(GraphQLBoolean),
-          description: 'Whether or not the video is released.',
+        video: {
+          type: new GraphQLNonNull(videoInputType),
         }
       },
       resolve: (_, args) => {
-        return createVideo(args);
+        return createVideo(args.video);
       },
     },
   },
