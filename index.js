@@ -14,8 +14,9 @@ const {
   GraphQLBoolean,
  } = require('graphql');
 
-const {getVideoById, getVideos, createVideo} = require('./src/data');
-const {nodeInterface} = require('./src/node');
+const { getVideoById, getVideos, createVideo } = require('./src/data');
+const { globalIdField } = require('graphql-relay');
+const { nodeInterface, nodeField } = require('./src/node');
 
 const PORT = process.env.PORT || 3000;
 
@@ -25,10 +26,7 @@ const videoType = new GraphQLObjectType({
   name: 'Video',
   description: 'A video',
   fields: {
-      id: {
-        type: new GraphQLNonNull(GraphQLID),
-        description: 'The id of the video.'
-      },
+      id: globalIdField(),
       title: {
         type: GraphQLString,
         description: 'The title of the video.',
@@ -42,6 +40,7 @@ const videoType = new GraphQLObjectType({
         description: 'Whether or not the viewer has watched the video.'
       },
   },
+
   interfaces: [nodeInterface],
 });
 
@@ -51,6 +50,7 @@ const queryType = new GraphQLObjectType({
   name: 'QueryType',
   description: 'The Rot query type',
   fields: {
+    node: nodeField,
     videos: {
       type: new GraphQLList(videoType),
       resolve: getVideos,
